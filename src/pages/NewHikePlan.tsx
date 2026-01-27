@@ -10,7 +10,8 @@ import {
   TerrainType, 
   ElevationType, 
   GroupSize, 
-  ExperienceLevel 
+  ExperienceLevel,
+  WeatherCondition
 } from '@/types/hike';
 import { saveHikePlan, setActiveHike, generateId, saveChecklist } from '@/lib/storage';
 import { generateChecklist } from '@/lib/checklist-generator';
@@ -22,7 +23,12 @@ import {
   Flame,
   User,
   Users,
-  ChevronRight
+  ChevronRight,
+  Sun,
+  CloudRain,
+  Snowflake,
+  Thermometer,
+  CloudSun
 } from 'lucide-react';
 
 interface OptionButtonProps {
@@ -61,6 +67,7 @@ export default function NewHikePlan() {
   const [duration, setDuration] = useState(4);
   const [groupSize, setGroupSize] = useState<GroupSize>('solo');
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>('intermediate');
+  const [weather, setWeather] = useState<WeatherCondition>('clear');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,6 +82,7 @@ export default function NewHikePlan() {
       duration,
       groupSize,
       experienceLevel,
+      weather,
       createdAt: new Date().toISOString(),
       isReady: false,
     };
@@ -98,6 +106,14 @@ export default function NewHikePlan() {
     { value: 'mountain', label: 'Mountain', icon: <Mountain className="h-5 w-5" /> },
     { value: 'coastal', label: 'Coastal', icon: <Waves className="h-5 w-5" /> },
     { value: 'volcanic', label: 'Volcanic', icon: <Flame className="h-5 w-5" /> },
+  ];
+
+  const weatherOptions: { value: WeatherCondition; label: string; icon: React.ReactNode; description: string }[] = [
+    { value: 'clear', label: 'Clear', icon: <Sun className="h-5 w-5" />, description: 'Sunny, mild conditions' },
+    { value: 'rain', label: 'Rain', icon: <CloudRain className="h-5 w-5" />, description: 'Wet conditions expected' },
+    { value: 'cold', label: 'Cold', icon: <Snowflake className="h-5 w-5" />, description: 'Low temperatures' },
+    { value: 'heat', label: 'Heat', icon: <Thermometer className="h-5 w-5" />, description: 'Hot, intense sun' },
+    { value: 'mixed', label: 'Mixed', icon: <CloudSun className="h-5 w-5" />, description: 'Variable weather' },
   ];
 
   return (
@@ -162,6 +178,33 @@ export default function NewHikePlan() {
               </OptionButton>
             ))}
           </div>
+        </div>
+
+        {/* Weather Conditions */}
+        <div className="space-y-3">
+          <Label className="section-title">Expected Weather</Label>
+          <div className="grid grid-cols-2 gap-2">
+            {weatherOptions.slice(0, 4).map((opt) => (
+              <OptionButton
+                key={opt.value}
+                selected={weather === opt.value}
+                onClick={() => setWeather(opt.value)}
+                icon={opt.icon}
+              >
+                {opt.label}
+              </OptionButton>
+            ))}
+          </div>
+          <OptionButton
+            selected={weather === 'mixed'}
+            onClick={() => setWeather('mixed')}
+            icon={<CloudSun className="h-5 w-5" />}
+          >
+            Mixed / Unpredictable
+          </OptionButton>
+          <p className="text-xs text-muted-foreground px-1">
+            {weatherOptions.find(w => w.value === weather)?.description}
+          </p>
         </div>
 
         {/* Elevation */}
