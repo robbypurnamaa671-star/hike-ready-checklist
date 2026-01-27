@@ -4,20 +4,36 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/button';
 import { HikePlan } from '@/types/hike';
-import { getHikePlans, getActiveHikeId, setActiveHike, getChecklist } from '@/lib/storage';
+import { getHikePlans, getActiveHikeId, setActiveHike, getChecklist, deleteHikePlan } from '@/lib/storage';
 import { calculateReadiness } from '@/lib/checklist-generator';
 import { ReadinessIndicator } from '@/components/readiness/ReadinessIndicator';
-import { PlusCircle, Mountain, ChevronRight, Compass } from 'lucide-react';
+import { PlusCircle, Mountain, ChevronRight, Compass, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function Index() {
   const navigate = useNavigate();
   const [plans, setPlans] = useState<HikePlan[]>([]);
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeId, setActiveIdState] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [planToDelete, setPlanToDelete] = useState<HikePlan | null>(null);
+
+  const loadPlans = () => {
+    setPlans(getHikePlans());
+    setActiveIdState(getActiveHikeId());
+  };
 
   useEffect(() => {
-    setPlans(getHikePlans());
-    setActiveId(getActiveHikeId());
+    loadPlans();
   }, []);
 
   const handleContinueHike = (id: string) => {
@@ -27,6 +43,21 @@ export default function Index() {
 
   const handleNewHike = () => {
     navigate('/plan/new');
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent, plan: HikePlan) => {
+    e.stopPropagation();
+    setPlanToDelete(plan);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (planToDelete) {
+      deleteHikePlan(planToDelete.id);
+      loadPlans();
+    }
+    setDeleteDialogOpen(false);
+    setPlanToDelete(null);
   };
 
   const getHikeReadiness = (hikeId: string) => {
@@ -79,32 +110,42 @@ export default function Index() {
               const readiness = getHikeReadiness(plan.id);
               
               return (
-                <button
-                  onClick={() => handleContinueHike(plan.id)}
-                  className="w-full card-elevated p-4 text-left hover:border-primary/50 transition-colors"
-                >
-                  <div className="flex items-center gap-4">
-                    {readiness && (
-                      <ReadinessIndicator 
-                        percentage={readiness.percentage}
-                        status={readiness.status}
-                        size="sm"
-                        showLabel={false}
-                      />
-                    )}
-                    
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-foreground truncate">
-                        {plan.name}
-                      </h4>
-                      <p className="text-sm text-muted-foreground mt-0.5">
-                        {plan.hikeType} • {plan.duration}h • {plan.terrain}
-                      </p>
+                <div className="relative group">
+                  <button
+                    onClick={() => handleContinueHike(plan.id)}
+                    className="w-full card-elevated p-4 text-left hover:border-primary/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      {readiness && (
+                        <ReadinessIndicator 
+                          percentage={readiness.percentage}
+                          status={readiness.status}
+                          size="sm"
+                          showLabel={false}
+                        />
+                      )}
+                      
+                      <div className="flex-1 min-w-0 pr-8">
+                        <h4 className="font-semibold text-foreground truncate">
+                          {plan.name}
+                        </h4>
+                        <p className="text-sm text-muted-foreground mt-0.5">
+                          {plan.hikeType} • {plan.duration}h • {plan.terrain}
+                        </p>
+                      </div>
+                      
+                      <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                     </div>
-                    
-                    <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                  </div>
-                </button>
+                  </button>
+                  
+                  <button
+                    onClick={(e) => handleDeleteClick(e, plan)}
+                    className="absolute right-14 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors touch-target"
+                    aria-label="Delete hike"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               );
             })()}
           </div>
@@ -120,42 +161,51 @@ export default function Index() {
                 const isActive = plan.id === activeId;
                 
                 return (
-                  <button
-                    key={plan.id}
-                    onClick={() => handleContinueHike(plan.id)}
-                    className={cn(
-                      'w-full card-elevated p-4 text-left hover:border-primary/50 transition-colors',
-                      isActive && 'border-primary/30'
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                        <Mountain className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-foreground truncate">
-                          {plan.name}
-                        </h4>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {plan.hikeType} • {plan.terrain}
-                        </p>
-                      </div>
-                      
-                      {readiness && (
-                        <span className={cn(
-                          'px-2 py-1 rounded-full text-xs font-medium',
-                          readiness.status === 'ready' && 'bg-success/10 text-success',
-                          readiness.status === 'caution' && 'bg-warning/10 text-warning',
-                          readiness.status === 'not-ready' && 'bg-muted text-muted-foreground'
-                        )}>
-                          {readiness.percentage}%
-                        </span>
+                  <div key={plan.id} className="relative group">
+                    <button
+                      onClick={() => handleContinueHike(plan.id)}
+                      className={cn(
+                        'w-full card-elevated p-4 text-left hover:border-primary/50 transition-colors',
+                        isActive && 'border-primary/30'
                       )}
-                      
-                      <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    </div>
-                  </button>
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
+                          <Mountain className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        
+                        <div className="flex-1 min-w-0 pr-16">
+                          <h4 className="font-medium text-foreground truncate">
+                            {plan.name}
+                          </h4>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {plan.hikeType} • {plan.terrain}
+                          </p>
+                        </div>
+                        
+                        {readiness && (
+                          <span className={cn(
+                            'px-2 py-1 rounded-full text-xs font-medium flex-shrink-0',
+                            readiness.status === 'ready' && 'bg-success/10 text-success',
+                            readiness.status === 'caution' && 'bg-warning/10 text-warning',
+                            readiness.status === 'not-ready' && 'bg-muted text-muted-foreground'
+                          )}>
+                            {readiness.percentage}%
+                          </span>
+                        )}
+                        
+                        <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      </div>
+                    </button>
+                    
+                    <button
+                      onClick={(e) => handleDeleteClick(e, plan)}
+                      className="absolute right-12 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 touch-target"
+                      aria-label="Delete hike"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 );
               })}
             </div>
@@ -198,6 +248,27 @@ export default function Index() {
           </ul>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="max-w-[90vw] rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete hike plan?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete "{planToDelete?.name}" and its checklist. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </PageContainer>
   );
 }
