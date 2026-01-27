@@ -3,6 +3,7 @@ export type TerrainType = 'forest' | 'mountain' | 'coastal' | 'volcanic';
 export type ElevationType = 'low' | 'medium' | 'high';
 export type GroupSize = 'solo' | 'group';
 export type ExperienceLevel = 'beginner' | 'intermediate' | 'advanced';
+export type WeatherCondition = 'clear' | 'rain' | 'cold' | 'heat' | 'mixed';
 
 export interface HikePlan {
   id: string;
@@ -13,6 +14,7 @@ export interface HikePlan {
   duration: number; // in hours
   groupSize: GroupSize;
   experienceLevel: ExperienceLevel;
+  weather: WeatherCondition;
   createdAt: string;
   isReady: boolean;
 }
