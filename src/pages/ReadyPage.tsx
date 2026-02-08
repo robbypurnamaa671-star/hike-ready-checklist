@@ -4,13 +4,15 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { HikePlan, ChecklistItem } from '@/types/hike';
 import { getActiveHikeId, getHikePlan, getChecklist, clearActiveHike } from '@/lib/storage';
 import { calculateReadiness, categoryLabels, categoryIcons } from '@/lib/checklist-generator';
-import { CheckCircle2, ArrowLeft, Share2, Mountain } from 'lucide-react';
+import { CheckCircle2, ArrowLeft, Mountain } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { CelebrationAnimation } from '@/components/celebration/CelebrationAnimation';
 
 export default function ReadyPage() {
   const navigate = useNavigate();
   const [plan, setPlan] = useState<HikePlan | null>(null);
   const [items, setItems] = useState<ChecklistItem[]>([]);
+  const [showAnimation, setShowAnimation] = useState(false);
 
   useEffect(() => {
     const activeId = getActiveHikeId();
@@ -29,6 +31,7 @@ export default function ReadyPage() {
     
     setPlan(hikePlan);
     setItems(checklist.items);
+    setShowAnimation(true);
   }, [navigate]);
 
   const handleNewHike = () => {
@@ -53,7 +56,6 @@ export default function ReadyPage() {
   const readiness = calculateReadiness(items);
   const checkedItems = items.filter(i => i.checked);
 
-  // Group checked items by category for summary
   const groupedChecked = checkedItems.reduce((acc, item) => {
     if (!acc[item.category]) {
       acc[item.category] = [];
@@ -64,22 +66,43 @@ export default function ReadyPage() {
 
   return (
     <PageContainer hideNav>
+      {showAnimation && <CelebrationAnimation />}
+      
       <div className="min-h-screen flex flex-col">
         {/* Hero Section */}
         <div className="bg-primary text-primary-foreground px-6 py-12 text-center">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary-foreground/20 mb-6">
-            <CheckCircle2 className="h-10 w-10" />
+          {/* Animated checkmark */}
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary-foreground/20 mb-6 animate-bounce-in">
+            <svg
+              viewBox="0 0 52 52"
+              className="h-10 w-10"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path
+                d="M14 27l8 8 16-16"
+                className="animate-checkmark-draw"
+                style={{
+                  strokeDasharray: 100,
+                  animationDelay: '0.4s',
+                  animationFillMode: 'backwards',
+                }}
+              />
+            </svg>
           </div>
           
-          <h1 className="text-3xl font-display font-bold mb-2">
+          <h1 className="text-3xl font-display font-bold mb-2 animate-slide-up" style={{ animationDelay: '0.3s', animationFillMode: 'backwards' }}>
             You're Ready!
           </h1>
           
-          <p className="text-primary-foreground/80 text-lg">
+          <p className="text-primary-foreground/80 text-lg animate-slide-up" style={{ animationDelay: '0.5s', animationFillMode: 'backwards' }}>
             {plan.name}
           </p>
           
-          <div className="flex items-center justify-center gap-4 mt-4 text-sm text-primary-foreground/70">
+          <div className="flex items-center justify-center gap-4 mt-4 text-sm text-primary-foreground/70 animate-slide-up" style={{ animationDelay: '0.6s', animationFillMode: 'backwards' }}>
             <span>{plan.hikeType} hike</span>
             <span>•</span>
             <span>{plan.duration}h</span>
@@ -87,7 +110,7 @@ export default function ReadyPage() {
             <span className="capitalize">{plan.terrain}</span>
           </div>
           
-          <div className="mt-6 text-4xl font-bold">
+          <div className="mt-6 text-4xl font-bold animate-bounce-in" style={{ animationDelay: '0.7s', animationFillMode: 'backwards' }}>
             {readiness.percentage}%
           </div>
           <p className="text-primary-foreground/70 text-sm mt-1">
@@ -100,8 +123,12 @@ export default function ReadyPage() {
           <h2 className="section-title mb-4 px-2">Your Packed Items</h2>
           
           <div className="space-y-4">
-            {Object.entries(groupedChecked).map(([category, categoryItems]) => (
-              <div key={category} className="card-elevated p-4">
+            {Object.entries(groupedChecked).map(([category, categoryItems], index) => (
+              <div 
+                key={category} 
+                className="card-elevated p-4 animate-slide-up"
+                style={{ animationDelay: `${0.8 + index * 0.1}s`, animationFillMode: 'backwards' }}
+              >
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-xl">
                     {categoryIcons[category as keyof typeof categoryIcons]}
