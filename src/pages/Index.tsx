@@ -7,8 +7,10 @@ import { HikePlan } from '@/types/hike';
 import { getHikePlans, getActiveHikeId, setActiveHike, getChecklist, deleteHikePlan } from '@/lib/storage';
 import { calculateReadiness } from '@/lib/checklist-generator';
 import { ReadinessIndicator } from '@/components/readiness/ReadinessIndicator';
-import { PlusCircle, Mountain, ChevronRight, Compass, Trash2 } from 'lucide-react';
+import { PlusCircle, Mountain, ChevronRight, Compass, Trash2, Sun, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTheme } from '@/hooks/use-theme';
+import { Switch } from '@/components/ui/switch';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +28,7 @@ export default function Index() {
   const [activeId, setActiveIdState] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [planToDelete, setPlanToDelete] = useState<HikePlan | null>(null);
+  const { theme, toggleTheme } = useTheme();
 
   const loadPlans = () => {
     setPlans(getHikePlans());
@@ -71,6 +74,17 @@ export default function Index() {
       <PageHeader 
         title="HikeReady"
         subtitle="Prepare with confidence"
+        action={
+          <div className="flex items-center gap-2">
+            <Sun className={cn("h-4 w-4 transition-colors", theme === 'light' ? 'text-accent' : 'text-muted-foreground')} />
+            <Switch
+              checked={theme === 'dark'}
+              onCheckedChange={toggleTheme}
+              aria-label="Toggle dark mode"
+            />
+            <Moon className={cn("h-4 w-4 transition-colors", theme === 'dark' ? 'text-accent' : 'text-muted-foreground')} />
+          </div>
+        }
       />
       
       <div className="px-4 space-y-6">

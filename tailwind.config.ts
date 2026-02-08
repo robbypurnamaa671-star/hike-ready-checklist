@@ -103,6 +103,20 @@ export default {
           from: { transform: "scale(0.95)", opacity: "0" },
           to: { transform: "scale(1)", opacity: "1" },
         },
+        "confetti-fall": {
+          "0%": { transform: "translateY(-100%) rotate(0deg)", opacity: "1" },
+          "100%": { transform: "translateY(100vh) rotate(720deg)", opacity: "0" },
+        },
+        "bounce-in": {
+          "0%": { transform: "scale(0)", opacity: "0" },
+          "50%": { transform: "scale(1.15)", opacity: "1" },
+          "70%": { transform: "scale(0.95)" },
+          "100%": { transform: "scale(1)" },
+        },
+        "checkmark-draw": {
+          "0%": { "stroke-dashoffset": "100" },
+          "100%": { "stroke-dashoffset": "0" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -110,6 +124,9 @@ export default {
         "pulse-gentle": "pulse-gentle 2s ease-in-out infinite",
         "slide-up": "slide-up 0.3s ease-out",
         "scale-in": "scale-in 0.2s ease-out",
+        "confetti-fall": "confetti-fall 2s ease-in forwards",
+        "bounce-in": "bounce-in 0.6s ease-out forwards",
+        "checkmark-draw": "checkmark-draw 0.8s ease-out forwards",
       },
     },
   },
